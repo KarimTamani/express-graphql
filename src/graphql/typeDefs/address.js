@@ -26,6 +26,8 @@ export default gql`
         longt : Float,
         userId : ID,
         cityId : ID
+        city : UpdateCityInput
+
     }
 
     type Address {

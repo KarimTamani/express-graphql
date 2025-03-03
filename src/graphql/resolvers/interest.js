@@ -16,17 +16,23 @@ const InterestResolver = {
 				return new ApolloError(error.message);
 			}
 		},
-		getInterests: async (_, {}, { models }) => {
+		getInterests: async (_, { label }, { models }) => {
 			try {
-				// fetching all interests that match the filters ()
-				return await models.Interest.findAll({});
+				// since some of the filters are not required like (label) we have to check first if they are provided by the user
+				let domain = {};
+				if (label) {
+					// add label to the domain
+					domain = { label };
+				}
+				// fetching all interests that match the filters (label)
+				return await models.Interest.findAll({ where: { ...domain } });
 			} catch (error) {
 				return new ApolloError(error.message);
 			}
 		},
 	},
 	Mutation: {
-        deleteInterest: async (_, { id }, { models, connection }) => {
+		deleteInterest: async (_, { id }, { models, connection }) => {
 			const transaction = await connection.transaction(); // Start transaction
 			try {
 				// first fetch interests to delete

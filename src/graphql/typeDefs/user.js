@@ -2,14 +2,14 @@ import { gql } from "apollo-server-express";
 export default gql`
 
     extend type Query {
-        getUserByEmail(id : ID!) : User
+        getUserById(id : ID!) : User
         getUsers(isActive : Boolean,name : String,status : UserStatus) : [User!]!
     }
 
     extend type Mutation {
         createUser (createUserInput : CreateUserInput!) : User!  
-        updateUser (updateUserInput : UpdateUserInput!,id : ID!) : User!  
-        deleteUser (id : [ID!]) : ID!  
+        updateUser (updateUserInput : UpdateUserInput!,id : ID,email : String) : User!  
+        deleteUser (id : ID!) : ID!  
     }
 
     input CreateUserInput {
@@ -24,7 +24,7 @@ export default gql`
         status : UserStatus!,
         profilePicture : Upload,
         userInterests : [CreateUserInterestsInput!],
-        address : [CreateAddress!],
+        address : CreateAddress,
         interests : [CreateInterestInput!]
     }
 
@@ -43,7 +43,7 @@ export default gql`
         profilePicture : Upload,
         isActive : Boolean,
         userInterests : [UpdateUserInterestsInput!],
-        address : [UpdateAddressInput!],
+        address : UpdateAddressInput,
         interests : [UpdateInterestInput!]
     }
 
@@ -64,6 +64,7 @@ export default gql`
         updatedAt : String!,
         isActive : Boolean,
         createdAt : String!,
+        userInterests : [UserInterests!],
         address : Address,
         interests : [Interest!]
     }

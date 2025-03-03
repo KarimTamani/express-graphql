@@ -4,9 +4,15 @@ import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { PORT } from "./config";
 import { typeDefs, resolvers } from "./graphql";
+import {  graphqlUploadExpress} from "graphql-upload"
+
+
+
 // create an express application 
 const app = express();
 
+// Apply middleware for handling multipart requests
+app.use(graphqlUploadExpress());
 
 var http = Server(app);
 
@@ -20,7 +26,7 @@ http.listen(PORT, async () => {
         // create apollo server with the type defs and the resolvers 
         const apolloServer = new ApolloServer({
             typeDefs,
-            resolvers,
+            resolvers  ,
             context: ({ }) => {
                 return {
                     models: connection.models,

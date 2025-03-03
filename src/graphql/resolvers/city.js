@@ -1,12 +1,11 @@
 import { ApolloError } from "apollo-server-express";
 import { CreateCityInputSchema, UpdateCityInputSchema } from "../../schema/city";
-
 const CityResolver = {
 	Query: {
 		getCitybyId: async (_, { id }, { models }) => {
 			try {
 				// type to find City by id
-				const city = models.City.findByPk(id, { include: [{ model: models.Country, as: "country" }] });
+				const city = await models.City.findByPk(id, { include: [{ model: models.Country, as: "country" }] });
 				// if not city found throw an error
 				if (!city) {
 					throw new Error(`City with this id : ${id} not Found !`);
@@ -17,7 +16,7 @@ const CityResolver = {
 				return new ApolloError(error.message);
 			}
 		},
-		getCities: async (_, {}, { models }) => {
+		getCities: async (_, { }, { models }) => {
 			try {
 				// fetching all cities that match the filters ()
 				return await models.City.findAll({ include: [{ model: models.Country, as: "country" }] });
@@ -27,14 +26,16 @@ const CityResolver = {
 		},
 	},
 	Mutation: {
-		createCity: async (_, { createCityInput }, { models }) => {
+		createCity: async (_, { createCityInput }, { models, connection }) => {
+			const transaction = await connection.transaction(); // Start transaction
 			try {
 				// validate createCityInput using City schema before insert data to the database
 				await Promise.all(
 					createCityInput.map((city) => CreateCityInputSchema.validate(city, { abortEarly: true })),
 				);
 				// insert createCityInput to the database
-				const cities = await models.City.bulkCreate(createCityInput);
+				const cities = await models.City.bulkCreate(createCityInput, { transaction });
+				await transaction.commit();
 				// reload the new created record cities to match the expected output
 				const reloadedCities = cities.map((city) => city.id);
 				return await models.City.findAll({
@@ -42,6 +43,7 @@ const CityResolver = {
 					include: [{ model: models.Country, as: "country" }],
 				});
 			} catch (error) {
+				await transaction.rollback();
 				return new ApolloError(error.message);
 			}
 		},
@@ -71,10 +73,12 @@ const CityResolver = {
 				if (!city) {
 					throw new Error(`City with this id : ${id} not Found !`);
 				}
-				// check if the foeign key countryId really exists in the countries table
-				const country = await models.Country.findByPk(updateCityInput.countryId);
-				if (!country) {
-					throw new Error(`Country with this id : ${updateCityInput.countryId} not Found !`);
+				if (updateCityInput.countryId) {
+					// check if the foeign key countryId really exists in the countries table
+					const country = await models.Country.findByPk(updateCityInput.countryId);
+					if (!country) {
+						throw new Error(`Country with this id : ${updateCityInput.countryId} not Found !`);
+					}
 				}
 				await city.update(updateCityInput);
 				return await city.reload({ include: [{ model: models.Country, as: "country" }] });

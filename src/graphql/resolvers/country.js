@@ -1,7 +1,6 @@
 import { ApolloError } from "apollo-server-express";
 import { CreateCountryInputSchema, UpdateCountryInputSchema } from "../../schema/country";
 
-
 const CountryResolver = {
 	Query: {
 		getCountrybyId: async (_, { id }, { models }) => {
@@ -28,19 +27,20 @@ const CountryResolver = {
 		},
 	},
 	Mutation: {
-		deleteCountry: async (_, { id }, { models }) => {
+		deleteCountry: async (_, { id }, { models, connection }) => {
+			const transaction = await connection.transaction(); // Start transaction
 			try {
-				// try to find country by id if it's not found then raise an error
-				const country = await models.Country.findByPk(id);
-				// if country not found raise an error
-				if (!country) {
-					throw new Error(`Country with this id : ${id} not Found !`);
-				}
-				// delete the record country
-				await country.destroy();
-				// return the deleted record id
-				return country.id;
+				// first fetch countries to delete
+				const countriesToDelete = await models.Country.findAll({ where: { id } });
+				const deletedIds = countriesToDelete.map((country) => country.id); // Extract IDs
+				// delete the countries
+				await models.Country.destroy({ where: { id: deletedIds }, transaction });
+				// commit delete transaction
+				await transaction.commit();
+				// return the deleted ids
+				return deletedIds;
 			} catch (error) {
+				await transaction.rollback();
 				return new ApolloError(error.message);
 			}
 		},
@@ -67,7 +67,7 @@ const CountryResolver = {
 				return new ApolloError(error.message);
 			}
 		},
-		updateCountry: async (_, { id, updateCountryInput }, { models }) => {
+		updateCountry: async (_, { updateCountryInput, id }, { models }) => {
 			try {
 				// validate the updateCountryInput before perfomring any updating
 				await UpdateCountryInputSchema.validate(updateCountryInput, { abortEarly: true });

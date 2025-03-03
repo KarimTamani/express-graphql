@@ -9,7 +9,7 @@ export default gql`
     extend type Mutation {
         createCountry (createCountryInput : [CreateCountryInput!]!) : [Country!]!  
         updateCountry (updateCountryInput : UpdateCountryInput!,id : ID!) : Country!  
-        deleteCountry (id : ID!) : ID!  
+        deleteCountry (id : [ID!]!) : [ID!]!  
     }
 
     input CreateCountryInput {

@@ -36,8 +36,10 @@ export const CreateUserInputSchema = yup.object({
 		}),
 	address: yup
 		.object()
-		.required()
+		.notRequired()
+		.nullable()
 		.test("address-validation", "address Is not Valid", async (address) => {
+			if (!address) return true;
 			try {
 				await CreateAddressSchema.validate(address, { abortEarly: true });
 				return true;
