@@ -1,8 +1,8 @@
 {
     "development": {
       "username": "root",
-      "password": "kachihaja50",
-      "database": "todolist",
+      "password": "password",
+      "database": "database",
       "host": "127.0.0.1",
       "dialect": "mysql" ,
       "logging" : false   ,  

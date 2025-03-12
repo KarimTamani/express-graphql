@@ -5,13 +5,12 @@ import path from "path";
 
 
 
-const saveFile = async ({ file }, uploadDir = "uploads", maxSizeMB = 0.002) => {
+const saveFile = async ({ file }, uploadDir = "uploads", maxSizeMB = 2) => {
     try {
         // Ensure the upload directory exists
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
-
 
         // Get file details
         const { createReadStream, filename } = await file;
@@ -45,7 +44,7 @@ const saveFile = async ({ file }, uploadDir = "uploads", maxSizeMB = 0.002) => {
         });
 
 
-        return filePath; // Return the saved file path
+        return newFilename; // Return the saved file path
     } catch (error) {
 
         throw new Error("File upload error:", error);
