@@ -8,6 +8,8 @@ const init = async () => {
 
     let connection = new Sequelize(config.database, config.username, config.password, config);
 
+    
+
     await connection.authenticate();
 
     for (const file of modelFiles) {
@@ -16,10 +18,11 @@ const init = async () => {
     }
 
     for (const model of Object.values(connection.models))
-        model.associate(connection.models)
+        if (model.associate)
+            model.associate(connection.models)
 
 
-    return connection ; 
+    return connection;
 
 }
 
