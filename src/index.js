@@ -14,12 +14,50 @@ const app = express();
 app.use(graphqlUploadExpress());
 
 var http = Server(app);
+ 
+// listen to the given port from the config file 
+http.listen(PORT, async () => {
+    try {
+        // init sequelize connection with db and load all models
+        const connection = await init();
+        // create apollo server with the type defs and the resolvers 
+        const apolloServer = new ApolloServer({
+            typeDefs,
+            resolvers  ,
+            context: ({ }) => {
+                return {
+                    models: connection.models,
+                    connection
+                }
+            },
+        });
+        await apolloServer.start();
+        // apply the apollo server as middleware 
+        apolloServer.applyMiddleware({ app });
+        console.log(`Server is runing on port ${PORT}`);
+    } catch (error) {
+        console.log("Error : ", error);
+    }
+})
+
+ 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 const test = async () => {
-    const connection = await init();
+    
     /*
 
     INSERT into database 
@@ -188,7 +226,7 @@ const test = async () => {
     } catch (error) {
         await t.rollback() ; 
    
-    }*/
+    }
 
 
     const users = await connection.models.User.findAll({
@@ -212,41 +250,9 @@ const test = async () => {
     for ( const user of users) { 
         console.log ( user.toJSON())
     }
+        */
 }
 
 
 
-test()
-
-/*
-// listen to the given port from the config file 
-http.listen(PORT, async () => {
-    try {
-        // init sequelize connection with db and load all models
-
-
- 
-        
-
-        // create apollo server with the type defs and the resolvers 
-        const apolloServer = new ApolloServer({
-            typeDefs,
-            resolvers  ,
-            context: ({ }) => {
-                return {
-                    models: connection.models,
-                    connection
-                }
-            },
-        });
-        await apolloServer.start();
-        // apply the apollo server as middleware 
-        apolloServer.applyMiddleware({ app });
-
-        console.log(`Server is runing on port ${PORT}`);
-    } catch (error) {
-        console.log("Error : ", error);
-    }
-})
-
-*/
+//test()
